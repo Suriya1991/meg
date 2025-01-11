@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worshipping Meg</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .game-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: black;
+      color: white;
+      height: 100vh;
+      position: relative;
+      display: none; /* Initially hidden */
+    }
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-template-rows: repeat(5, 60px);
+      gap: 2px;
+      margin-bottom: 20px;
+    }
+    .puzzle-piece {
+      width: 60px;
+      height: 60px;
+      background-color: black;
+      background-size: 300px 300px;
+      visibility: hidden; /* Pieces start hidden */
+    }
+    textarea {
+      width: 80%;
+      height: 100px;
+      margin-top: 20px;
+    }
+    .btn {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #gameOverMessage {
+      font-size: 80px; /* Increased font size for Game Over */
+      color: yellow;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+    }
+    #typedParagraph {
+      font-size: 30px; /* Increased font size for typed paragraph */
+      color: white;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      text-align: center;
+      display: none;
+    }
+    #fullImage {
+      display: none;
+      width: 50%; /* Reduced image size to 50% */
+      height: auto;
+    }
+    video {
+      width: 100%; /* Full screen video */
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Worshipping Meg</h1>
+  <p>Type magical worshipping words to reveal Princess Meg!</p>
+
+  <!-- Intro video -->
+  <video id="introVideo" autoplay controls onended="startGame()">
+    <source src="vid.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <div class="game-screen" id="gameScreen">
+    <div class="puzzle-container" id="puzzleContainer"></div>
+    <textarea id="typingBox" placeholder="Type magic words here..." oninput="checkWord()" disabled></textarea>
+    <p id="progressMessage">Start typing to reveal the first picture!</p>
+    <div id="gameOverMessage">Game Over!</div>
+    <img id="fullImage" src="" alt="Full Image">
+    <p id="typedParagraph"></p>
+  </div>
+
+  <script>
+    const validWords = [
+      'beg', 'barking', 'woof', 'kneel', 'worship', 'mommy', 'princess', 'goddess', 
+      'feet', 'tits', 'boobs', 'body', 'cute', 'sexy', 'gorgeous', 'bless', 'please', 
+      'slave', 'pet', 'serve', 'ass', 'mouth', 'sluty', 'slut', 'sub', 'kiss', 'bowing',
+      'spit', 'humiliation', 'humiliate', 'spoil', 'slap', 'slapping', 'spitting',
+      'spank', 'dog', 'cat', 'meow', 'stick', 'cum', 'taste'
+    ];
+    const totalPieces = 25; // 5x5 grid
+    const imageGridSize = 5; 
+    let progress = 0;
+    let imageIndex = 0; 
+    const imagePaths = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg']; 
+    let puzzlePieces = [];
+    let typedWords = new Set(); 
+
+    function startGame() {
+      // Hide the intro video and show the game
+      document.getElementById('introVideo').style.display = 'none'; 
+      document.getElementById('gameScreen').style.display = 'flex'; 
+
+      imageIndex = Math.floor(Math.random() * imagePaths.length); // Randomize the first image
+      selectPicture(imagePaths[imageIndex]);
+
+      const typingBox = document.getElementById('typingBox');
+      typingBox.disabled = false;
+      typingBox.value = '';
+      progress = 0;
+
+      document.getElementById('progressMessage').innerText = 'Type the magic words to reveal the image!';
+      typedWords.clear();
+      document.getElementById('gameOverMessage').style.display = 'none'; // Hide "Game Over"
+      document.getElementById('typedParagraph').style.display = 'none'; // Hide typed paragraph initially
+      document.getElementById('fullImage').style.display = 'none'; // Hide full image initially
+    }
+
+    function selectPicture(imagePath) {
+      const puzzleContainer = document.getElementById('puzzleContainer');
+      puzzleContainer.innerHTML = '';
+      puzzlePieces = [];
+
+      for (let i = 0; i < totalPieces; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.style.backgroundImage = `url('${imagePath}')`;
+        piece.style.backgroundPosition = `${-(i % imageGridSize) * 60}px ${-Math.floor(i / imageGridSize) * 60}px`;
+        puzzleContainer.appendChild(piece);
+        puzzlePieces.push(piece);
+      }
+    }
+
+    function checkWord() {
+      const typingBox = document.getElementById('typingBox');
+      const userInput = typingBox.value.trim().toLowerCase();
+
+      const words = userInput.split(/\s+/); // Split input into words
+      words.forEach(word => {
+        if (validWords.includes(word) && !typedWords.has(word) && progress < totalPieces) {
+          revealPiece();
+          typedWords.add(word); // Track revealed words
+        }
+      });
+    }
+
+    function revealPiece() {
+      if (progress < totalPieces) {
+        puzzlePieces[progress].style.visibility = 'visible';
+        progress++;
+      }
+
+      document.getElementById('progressMessage').innerText = `Progress: ${progress} pieces revealed!`;
+
+      if (progress >= totalPieces) {
+        setTimeout(() => {
+          // Hide puzzle pieces and show full image
+          document.getElementById('gameScreen').style.background = 'black';
+          const fullImage = document.getElementById('fullImage');
+          fullImage.src = imagePaths[imageIndex]; // Set full image source
+          fullImage.style.display = 'block'; // Show full image
+
+          // Show "Game Over" message and the typed paragraph
+          document.getElementById('gameOverMessage').style.display = 'block';
+          const typedParagraph = document.getElementById('typedParagraph');
+          typedParagraph.innerText = `You typed: ${document.getElementById('typingBox').value}`;
+          typedParagraph.style.display = 'block'; // Show typed paragraph
+        }, 1000);
+      }
+    }
+
+    window.onload = () => {
+      document.getElementById('gameScreen').style.display = 'none'; // Hide game initially
+      document.getElementById('introVideo').style.display = 'block'; // Show video initially
+    };
+  </script>
+</body>
+</html>
